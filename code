@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">💰 Budget Planner</h1>
+            <p class="text-gray-600">Take control of your finances with smart budgeting</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Income</p>
+                        <p class="text-2xl font-bold text-green-600" id="totalIncome">$0.00</p>
+                    </div>
+                    <div class="text-green-500 text-3xl">📈</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Expenses</p>
+                        <p class="text-2xl font-bold text-red-600" id="totalExpenses">$0.00</p>
+                    </div>
+                    <div class="text-red-500 text-3xl">📉</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Remaining Budget</p>
+                        <p class="text-2xl font-bold text-blue-600" id="remainingBudget">$0.00</p>
+                    </div>
+                    <div class="text-blue-500 text-3xl">💳</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Income Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">💵</span> Income Sources
+                </h2>
+                
+                <div class="mb-4">
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="incomeSource" placeholder="Income source (e.g., Salary)" 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <input type="number" id="incomeAmount" placeholder="Amount" 
+                               class="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <button onclick="addIncome()" 
+                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Add
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="incomeList" class="space-y-2 max-h-64 overflow-y-auto">
+                    <!-- Income items will be added here -->
+                </div>
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">💸</span> Expenses
+                </h2>
+                
+                <div class="mb-4">
+                    <div class="flex gap-2 mb-3">
+                        <select id="expenseCategory" 
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="🏠 Housing">🏠 Housing</option>
+                            <option value="🍕 Food">🍕 Food</option>
+                            <option value="🚗 Transportation">🚗 Transportation</option>
+                            <option value="🎬 Entertainment">🎬 Entertainment</option>
+                            <option value="👕 Shopping">👕 Shopping</option>
+                            <option value="⚡ Utilities">⚡ Utilities</option>
+                            <option value="🏥 Healthcare">🏥 Healthcare</option>
+                            <option value="📚 Education">📚 Education</option>
+                            <option value="💼 Other">💼 Other</option>
+                        </select>
+                        <input type="number" id="expenseAmount" placeholder="Amount" 
+                               class="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <button onclick="addExpense()" 
+                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Add
+                        </button>
+                    </div>
+                    <input type="text" id="expenseDescription" placeholder="Description (optional)" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                </div>
+                
+                <div id="expenseList" class="space-y-2 max-h-64 overflow-y-auto">
+                    <!-- Expense items will be added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <!-- Expense Breakdown Chart -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Expense Breakdown</h3>
+                <div class="relative h-64">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Budget Overview -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">📈 Budget Overview</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                        <span class="font-medium text-green-800">Income</span>
+                        <span class="font-bold text-green-600" id="overviewIncome">$0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                        <span class="font-medium text-red-800">Expenses</span>
+                        <span class="font-bold text-red-600" id="overviewExpenses">$0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <span class="font-medium text-blue-800">Net Balance</span>
+                        <span class="font-bold text-blue-600" id="overviewBalance">$0.00</span>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Budget Usage</span>
+                            <span id="budgetPercentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div id="budgetProgressBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center gap-4 mt-8">
+            <button onclick="clearAllData()" 
+                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                🗑️ Clear All
+            </button>
+            <button onclick="exportData()" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                📄 Export Data
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let incomeData = [];
+        let expenseData = [];
+        let expenseChart = null;
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            expenseChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function addIncome() {
+            const source = document.getElementById('incomeSource').value.trim();
+            const amount = parseFloat(document.getElementById('incomeAmount').value);
+
+            if (!source || !amount || amount <= 0) {
+                alert('Please enter a valid income source and amount');
+                return;
+            }
+
+            const income = {
+                id: Date.now(),
+                source: source,
+                amount: amount
+            };
+
+            incomeData.push(income);
+            document.getElementById('incomeSource').value = '';
+            document.getElementById('incomeAmount').value = '';
+            
+            updateIncomeList();
+            updateSummary();
+        }
+
+        function addExpense() {
+            const category = document.getElementById('expenseCategory').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const description = document.getElementById('expenseDescription').value.trim();
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid expense amount');
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                category: category,
+                amount: amount,
+                description: description || 'No description'
+            };
+
+            expenseData.push(expense);
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDescription').value = '';
+            
+            updateExpenseList();
+            updateSummary();
+            updateChart();
+        }
+
+        function removeIncome(id) {
+            incomeData = incomeData.filter(item => item.id !== id);
+            updateIncomeList();
+            updateSummary();
+        }
+
+        function removeExpense(id) {
+            expenseData = expenseData.filter(item => item.id !== id);
+            updateExpenseList();
+            updateSummary();
+            updateChart();
+        }
+
+        function updateIncomeList() {
+            const list = document.getElementById('incomeList');
+            list.innerHTML = '';
+
+            incomeData.forEach(income => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-3 bg-green-50 rounded-lg';
+                item.innerHTML = `
+                    <div>
+                        <span class="font-medium text-green-800">${income.source}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-green-600">$${income.amount.toFixed(2)}</span>
+                        <button onclick="removeIncome(${income.id})" 
+                                class="text-red-500 hover:text-red-700 text-sm">✕</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateExpenseList() {
+            const list = document.getElementById('expenseList');
+            list.innerHTML = '';
+
+            expenseData.forEach(expense => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-3 bg-red-50 rounded-lg';
+                item.innerHTML = `
+                    <div>
+                        <span class="font-medium text-red-800">${expense.category}</span>
+                        <p class="text-sm text-gray-600">${expense.description}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-red-600">$${expense.amount.toFixed(2)}</span>
+                        <button onclick="removeExpense(${expense.id})" 
+                                class="text-red-500 hover:text-red-700 text-sm">✕</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateSummary() {
+            const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
+            const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
+            const remaining = totalIncome - totalExpenses;
+
+            document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+            document.getElementById('remainingBudget').textContent = `$${remaining.toFixed(2)}`;
+
+            // Update overview section
+            document.getElementById('overviewIncome').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('overviewExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+            document.getElementById('overviewBalance').textContent = `$${remaining.toFixed(2)}`;
+
+            // Update progress bar
+            const percentage = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0;
+            document.getElementById('budgetPercentage').textContent = `${Math.min(percentage, 100).toFixed(1)}%`;
+            document.getElementById('budgetProgressBar').style.width = `${Math.min(percentage, 100)}%`;
+            
+            // Change color based on budget usage
+            const progressBar = document.getElementById('budgetProgressBar');
+            if (percentage > 90) {
+                progressBar.className = 'bg-gradient-to-r from-red-400 to-red-600 h-3 rounded-full transition-all duration-300';
+            } else if (percentage > 70) {
+                progressBar.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 h-3 rounded-full transition-all duration-300';
+            } else {
+                progressBar.className = 'bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-300';
+            }
+        }
+
+        function updateChart() {
+            const categoryTotals = {};
+            
+            expenseData.forEach(expense => {
+                const category = expense.category;
+                categoryTotals[category] = (categoryTotals[category] || 0) + expense.amount;
+            });
+
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+
+            expenseChart.data.labels = labels;
+            expenseChart.data.datasets[0].data = data;
+            expenseChart.update();
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                incomeData = [];
+                expenseData = [];
+                updateIncomeList();
+                updateExpenseList();
+                updateSummary();
+                updateChart();
+            }
+        }
+
+        function exportData() {
+            const data = {
+                income: incomeData,
+                expenses: expenseData,
+                summary: {
+                    totalIncome: incomeData.reduce((sum, item) => sum + item.amount, 0),
+                    totalExpenses: expenseData.reduce((sum, item) => sum + item.amount, 0),
+                    remaining: incomeData.reduce((sum, item) => sum + item.amount, 0) - expenseData.reduce((sum, item) => sum + item.amount, 0)
+                },
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `budget-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+            updateSummary();
+        });
+
+        // Allow Enter key to add items
+        document.getElementById('incomeAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addIncome();
+        });
+
+        document.getElementById('expenseAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addExpense();
+        });
+
+        document.getElementById('expenseDescription').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addExpense();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984276e0816e8ae4',t:'MTc1ODcxODgyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
